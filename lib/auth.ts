@@ -1,21 +1,22 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const JWT_SECRET = process.env.JWT_SECRET!;
+const getSecret = () => {
+  const secret = process.env.JWT_SECRET || 'bagcorner-secret-key-default-2026';
+  return new TextEncoder().encode(secret);
+};
 
 export async function signToken(payload: Record<string, unknown>): Promise<string> {
-  const secret = new TextEncoder().encode(JWT_SECRET);
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('7d')
-    .sign(secret);
+    .sign(getSecret());
 }
 
 export async function verifyToken(token: string): Promise<Record<string, unknown> | null> {
   try {
-    const secret = new TextEncoder().encode(JWT_SECRET);
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, getSecret());
     return payload as Record<string, unknown>;
   } catch {
     return null;

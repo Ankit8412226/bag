@@ -1,10 +1,6 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI!;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bagcorner';
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -30,11 +26,11 @@ async function connectDB(): Promise<typeof mongoose> {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 3000, // fail fast — 3s not 30s
+      serverSelectionTimeoutMS: 3000,
       connectTimeoutMS: 3000,
     };
     cached.promise = mongoose.connect(MONGODB_URI, opts).catch(err => {
-      cached.promise = null; // reset so next request retries
+      cached.promise = null;
       throw err;
     });
   }
