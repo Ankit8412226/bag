@@ -2,20 +2,35 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
 import { isAdminAuthenticated } from '@/lib/auth';
+import { DUMMY_PRODUCTS } from '@/lib/productsData';
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await connectDB();
     const { id } = await params;
+    const db = await connectDB();
+
+    if (!db) {
+      const dummy = DUMMY_PRODUCTS.find(p => p._id === id);
+      if (!dummy) {
+        return NextResponse.json({ error: 'Product not found' }, { status: 404 });
+      }
+      return NextResponse.json({ product: dummy });
+    }
+
     const product = await Product.findById(id).lean();
     if (!product) {
+      const dummy = DUMMY_PRODUCTS.find(p => p._id === id);
+      if (dummy) return NextResponse.json({ product: dummy });
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
     return NextResponse.json({ product });
   } catch {
+    const { id } = await params;
+    const dummy = DUMMY_PRODUCTS.find(p => p._id === id);
+    if (dummy) return NextResponse.json({ product: dummy });
     return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
   }
 }
@@ -30,7 +45,10 @@ export async function PUT(
   }
 
   try {
-    await connectDB();
+    const db = await connectDB();
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
     const { id } = await params;
     const body = await request.json();
     const { name, price, description, imageUrl, category, stock, isActive } = body;
@@ -70,7 +88,10 @@ export async function DELETE(
   }
 
   try {
-    await connectDB();
+    const db = await connectDB();
+    if (!db) {
+      return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+    }
     const { id } = await params;
     const product = await Product.findByIdAndDelete(id);
     if (!product) {
