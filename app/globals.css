@@ -1,0 +1,140 @@
+@import "tailwindcss";
+
+/* ============================================
+   BAGCORNER – GLOBAL DESIGN SYSTEM
+   Using inline-style-first approach for reliability
+   ============================================ */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* NO scroll-behavior: smooth here — causes scroll lag */
+}
+
+/* Only animate scroll for anchor links, not all scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html:focus-within {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  background: #faf7f2;
+  color: #1a1a1a;
+  font-family: var(--font-inter-loaded), "Inter", system-ui, -apple-system, sans-serif;
+  line-height: 1.6;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #faf7f2; }
+::-webkit-scrollbar-thumb { background: #c8a876; border-radius: 10px; }
+
+/* ===== PRODUCT CARD HOVER ===== */
+.product-card {
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              box-shadow 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+.product-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 28px 72px rgba(0,0,0,0.13);
+}
+.product-card .card-img img {
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.product-card:hover .card-img img {
+  transform: scale(1.08);
+}
+
+/* ===== NAV LINK ===== */
+.nav-link {
+  position: relative;
+  color: rgba(26,26,26,0.6);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s;
+  padding-bottom: 2px;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 0;
+  width: 0; height: 1.5px;
+  background: #a0824e;
+  transition: width 0.3s ease;
+}
+.nav-link:hover { color: #1a1a1a; }
+.nav-link:hover::after { width: 100%; }
+
+/* ===== WHATSAPP FLOAT ===== */
+@keyframes wa-pulse {
+  0%, 100% { box-shadow: 0 6px 28px rgba(37,211,102,0.5), 0 0 0 0 rgba(37,211,102,0.35); }
+  60%       { box-shadow: 0 6px 28px rgba(37,211,102,0.5), 0 0 0 14px rgba(37,211,102,0); }
+}
+.wa-float { animation: wa-pulse 2.8s ease-in-out infinite; }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.anim-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.22,1,0.36,1) both;
+}
+.anim-d1 { animation-delay: 0.08s; }
+.anim-d2 { animation-delay: 0.18s; }
+.anim-d3 { animation-delay: 0.28s; }
+.anim-d4 { animation-delay: 0.38s; }
+
+/* ===== ADMIN INPUT ===== */
+.adm-input {
+  width: 100%;
+  padding: 11px 16px;
+  background: #faf7f2;
+  border: 1.5px solid #e5ddd2;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #1a1a1a;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: none;
+}
+.adm-input:focus {
+  border-color: #c8a876;
+  box-shadow: 0 0 0 3px rgba(200,168,118,0.15);
+}
+.adm-input::placeholder { color: rgba(26,26,26,0.3); }
+
+/* ===== RESPONSIVE HELPERS ===== */
+@media (min-width: 768px) {
+  .md-flex { display: flex !important; gap: 48px; }
+  .md-hidden { display: none !important; }
+  .md-grid-3 { grid-template-columns: repeat(3, 1fr) !important; }
+  .md-grid-4 { grid-template-columns: repeat(4, 1fr) !important; }
+  .md-grid-6 { grid-template-columns: repeat(6, 1fr) !important; }
+  .hero-img-right { display: block !important; }
+  .detail-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+    align-items: start;
+  }
+}
+@media (max-width: 767px) {
+  .sm-hidden { display: none !important; }
+  .hero-img-right { display: none !important; }
+  .detail-grid {
+    display: flex !important;
+    flex-direction: column;
+    gap: 32px;
+  }
+}
