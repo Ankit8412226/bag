@@ -54,7 +54,7 @@ export default function ContactPage() {
     // Also construct WhatsApp pre-filled message as direct backup option
     const text = encodeURIComponent(`Hi BagCorner! My name is ${formData.name}. ${formData.message} (Contact: ${formData.phone || formData.email})`);
     setTimeout(() => {
-      window.open(`https://wa.me/919999999999?text=${text}`, '_blank');
+      window.open(`https://wa.me/918174963686?text=${text}`, '_blank');
     }, 1200);
   };
 
@@ -295,8 +295,8 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <p style={{ fontSize: 12, color: '#888', fontWeight: 600, textTransform: 'uppercase' }}>Call Us</p>
-                    <a href="tel:+919999999999" style={{ fontSize: 15, color: '#1a1a1a', fontWeight: 600, textDecoration: 'none' }}>
-                      +91 99999 99999
+                    <a href="tel:+918174963686" style={{ fontSize: 15, color: '#1a1a1a', fontWeight: 600, textDecoration: 'none' }}>
+                      +91 81749 63686
                     </a>
                   </div>
                 </div>

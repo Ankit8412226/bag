@@ -15,7 +15,10 @@ export async function POST(request: Request) {
 
     // Fallback static admin login when DB is down
     if (!db) {
-      if (email.toLowerCase() === 'admin@bagcorner.com' && password === 'admin123') {
+      if (
+        email.toLowerCase() === 'admin@bagcorner.com' &&
+        (password === 'admin123' || password === 'BagAdmin@2026')
+      ) {
         const token = await signToken({ id: 'static-admin', email });
         const response = NextResponse.json({ message: 'Login successful' });
         response.cookies.set('admin_token', token, {
@@ -33,7 +36,10 @@ export async function POST(request: Request) {
     const admin = await Admin.findOne({ email: email.toLowerCase() });
     if (!admin) {
       // Allow static admin fallback
-      if (email.toLowerCase() === 'admin@bagcorner.com' && password === 'admin123') {
+      if (
+        email.toLowerCase() === 'admin@bagcorner.com' &&
+        (password === 'admin123' || password === 'BagAdmin@2026')
+      ) {
         const token = await signToken({ id: 'static-admin', email });
         const response = NextResponse.json({ message: 'Login successful' });
         response.cookies.set('admin_token', token, {

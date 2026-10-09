@@ -1,10 +1,10 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 
-const getSecret = () => {
-  const secret = process.env.JWT_SECRET || 'bagcorner-secret-key-default-2026';
-  return new TextEncoder().encode(secret);
-};
+// Hardcoded JWT secret
+const JWT_SECRET = 'bagcorner_super_secret_jwt_key_2026_prod';
+
+const getSecret = () => new TextEncoder().encode(JWT_SECRET);
 
 export async function signToken(payload: Record<string, unknown>): Promise<string> {
   return new SignJWT(payload)

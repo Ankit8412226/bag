@@ -87,7 +87,7 @@ export default function Footer() {
               {[
                 { icon: MessageCircle, text: 'WhatsApp Us', href: generateGeneralWhatsAppUrl(), external: true },
                 { icon: Mail, text: 'hello@sabagcorner.com', href: 'mailto:hello@sabagcorner.com', external: false },
-                { icon: Phone, text: '+91 99999 99999', href: 'tel:+919999999999', external: false },
+                { icon: Phone, text: '+91 81749 63686', href: 'tel:+918174963686', external: false },
                 { icon: ExternalLink, text: '@bagcorner', href: 'https://instagram.com/bagcorner', external: true },
               ].map(({ icon: Icon, text, href, external }) => (
                 <a

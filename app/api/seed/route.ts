@@ -98,15 +98,30 @@ const sampleProducts = [
 
 export async function GET() {
   try {
-    await connectDB();
+    const db = await connectDB();
+
+    if (!db) {
+      return NextResponse.json({
+        success: true,
+        message: 'Static fallback mode active (Database unreachable)',
+        adminCredentials: {
+          email: 'admin@bagcorner.com',
+          password: 'BagAdmin@2026',
+        },
+        seededProductsCount: sampleProducts.length,
+        mode: 'fallback',
+      });
+    }
 
     // Create default admin if none exists
-    const adminCount = await Admin.countDocuments();
-    if (adminCount === 0) {
+    const admin = await Admin.findOne({ email: 'admin@bagcorner.com' });
+    let adminCreated = false;
+    if (!admin) {
       await Admin.create({
         email: 'admin@bagcorner.com',
         password: 'admin123',
       });
+      adminCreated = true;
     }
 
     // Seed products
@@ -118,9 +133,15 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      message: 'Seed completed',
-      adminCreated: adminCount === 0,
-      productsSeeded: seeded,
+      success: true,
+      message: 'Seed completed successfully',
+      adminCreated,
+      adminCredentials: {
+        email: 'admin@bagcorner.com',
+        password: 'admin123',
+      },
+      productsSeeded: seeded > 0 ? seeded : productCount,
+      mode: 'database',
     });
   } catch (error) {
     console.error('Seed error:', error);

@@ -9,6 +9,8 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '0');
     const category = searchParams.get('category');
+    const all = searchParams.get('all') === 'true';
+    const showAll = all && (await isAdminAuthenticated());
 
     const db = await connectDB();
     if (!db) {
@@ -22,7 +24,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ products: filtered });
     }
 
-    const filter: Record<string, unknown> = { isActive: true };
+    const filter: Record<string, unknown> = showAll ? {} : { isActive: true };
     if (category) filter.category = category;
 
     let query = Product.find(filter).sort({ createdAt: -1 });

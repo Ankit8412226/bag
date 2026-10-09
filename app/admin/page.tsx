@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -15,6 +15,9 @@ import {
   ToggleLeft,
   ToggleRight,
   ImageOff,
+  Upload,
+  Link as LinkIcon,
+  Loader2,
 } from 'lucide-react';
 
 interface Product {
@@ -59,6 +62,9 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
+  const [imageTab, setImageTab] = useState<'upload' | 'url'>('upload');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -85,10 +91,33 @@ export default function AdminPage() {
     router.push('/admin/login');
   }
 
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError('');
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      if (res.status === 401) { router.push('/admin/login'); return; }
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Upload failed'); return; }
+      setForm(prev => ({ ...prev, imageUrl: data.url }));
+      setImageError(false);
+    } catch {
+      setError('Upload failed. Check your connection.');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  }
+
   function openCreate() {
     setEditId(null);
     setForm(emptyForm);
     setImageError(false);
+    setImageTab('upload');
     setShowForm(true);
     setError('');
   }
@@ -105,6 +134,7 @@ export default function AdminPage() {
       isActive: product.isActive,
     });
     setImageError(false);
+    setImageTab('url');
     setShowForm(true);
     setError('');
   }
@@ -467,20 +497,97 @@ export default function AdminPage() {
                   />
                 </div>
 
+                {/* Image — Upload or URL */}
                 <div>
                   <label className="block text-sm font-medium text-charcoal/70 mb-1.5">
-                    Image URL *
+                    Product Image *
                   </label>
+
+                  {/* Tab switcher */}
+                  <div className="flex rounded-xl overflow-hidden border border-border mb-3">
+                    <button
+                      type="button"
+                      onClick={() => setImageTab('upload')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-colors ${
+                        imageTab === 'upload'
+                          ? 'bg-charcoal text-white'
+                          : 'bg-cream text-charcoal/50 hover:text-charcoal'
+                      }`}
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      Upload File
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setImageTab('url')}
+                      className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-colors ${
+                        imageTab === 'url'
+                          ? 'bg-charcoal text-white'
+                          : 'bg-cream text-charcoal/50 hover:text-charcoal'
+                      }`}
+                    >
+                      <LinkIcon className="w-3.5 h-3.5" />
+                      Paste URL
+                    </button>
+                  </div>
+
+                  {imageTab === 'upload' ? (
+                    <div
+                      onClick={() => !uploading && fileInputRef.current?.click()}
+                      className={`flex flex-col items-center justify-center gap-2 p-5 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+                        uploading
+                          ? 'border-tan/40 bg-tan/5 cursor-wait'
+                          : 'border-border hover:border-tan hover:bg-tan/5'
+                      }`}
+                    >
+                      {uploading ? (
+                        <>
+                          <Loader2 className="w-6 h-6 text-tan animate-spin" />
+                          <p className="text-xs text-charcoal/50">Uploading…</p>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-6 h-6 text-charcoal/30" />
+                          <p className="text-xs text-charcoal/50 text-center">
+                            Click to upload image<br />
+                            <span className="text-charcoal/30">JPEG, PNG, WebP · max 5 MB</span>
+                          </p>
+                        </>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        id="product-image-file-input"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+                        className="hidden"
+                        onChange={handleFileUpload}
+                      />
+                    </div>
+                  ) : (
+                    <input
+                      id="product-image-url-input"
+                      type="text"
+                      value={form.imageUrl}
+                      onChange={(e) => { setForm({ ...form, imageUrl: e.target.value }); setImageError(false); }}
+                      placeholder="https://example.com/bag.jpg"
+                      className="w-full px-4 py-2.5 bg-cream border border-border rounded-xl text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-tan/40 focus:border-tan transition-all text-sm"
+                    />
+                  )}
+
+                  {/* Hidden required input to ensure imageUrl is always validated */}
                   <input
-                    id="product-image-url-input"
                     type="text"
                     value={form.imageUrl}
-                    onChange={(e) => { setForm({ ...form, imageUrl: e.target.value }); setImageError(false); }}
+                    onChange={() => {}}
                     required
-                    placeholder="https://example.com/bag.jpg"
-                    className="w-full px-4 py-2.5 bg-cream border border-border rounded-xl text-charcoal placeholder-charcoal/30 focus:outline-none focus:ring-2 focus:ring-tan/40 focus:border-tan transition-all text-sm"
+                    className="sr-only"
+                    tabIndex={-1}
+                    aria-hidden="true"
                   />
-                  <p className="text-xs text-charcoal/40 mt-1">Paste an image URL from the web</p>
+
+                  {form.imageUrl && (
+                    <p className="text-xs text-green-600 mt-1 truncate">✓ {form.imageUrl}</p>
+                  )}
                 </div>
 
                 <div>

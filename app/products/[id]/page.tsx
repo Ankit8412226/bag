@@ -2,9 +2,9 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { use } from 'react';
+import { use, useEffect, useState } from 'react';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Package, Tag, CheckCircle, XCircle, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Package, Tag, CheckCircle, XCircle, MessageCircle, Loader2 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FloatingWhatsApp from '@/components/FloatingWhatsApp';
@@ -15,30 +15,49 @@ interface Product {
   imageUrl: string; category?: string; stock?: number; isActive: boolean;
 }
 
-const DUMMY_MAP: Record<string, Product> = {
-  '1': { _id: '1', name: 'Classic Leather Backpack', price: 1499, category: 'Backpacks', stock: 15, isActive: true, imageUrl: '/p1.png', description: 'A timeless brown leather backpack with gold hardware and multiple compartments. Crafted from genuine full-grain leather, designed to age beautifully. Features a padded laptop sleeve, multiple organizer pockets, and comfortable padded shoulder straps.' },
-  '2': { _id: '2', name: 'Premium Travel Backpack', price: 2299, category: 'Backpacks', stock: 10, isActive: true, imageUrl: '/p2.png', description: 'Sleek black travel backpack with dedicated laptop compartment. Waterproof and built for modern professionals. Includes USB charging port, anti-theft hidden pocket, and ergonomic back support system. Fits up to 15.6" laptops.' },
-  '3': { _id: '3', name: "Women's Tote Bag", price: 1899, category: 'Tote Bags', stock: 20, isActive: true, imageUrl: '/p3.png', description: 'Elegant tan leather tote with gold hardware and spacious interior. Perfect for work or weekend outings. Features multiple internal pockets, a secure zip closure, and comfortable top handles with optional crossbody strap.' },
-  '4': { _id: '4', name: 'Casual Sling Bag', price: 799, category: 'Sling Bags', stock: 25, isActive: true, imageUrl: '/p4.png', description: 'Lightweight olive green canvas sling bag for daily essentials. Compact, stylish, and comfortable for all-day wear. Adjustable strap, zip closure, and front quick-access pocket.' },
-  '5': { _id: '5', name: 'Laptop Backpack', price: 1699, category: 'Backpacks', stock: 12, isActive: true, imageUrl: '/p5.png', description: 'Anti-theft charcoal laptop backpack with USB charging port and padded straps. Fits up to 15.6" laptop. Water-resistant fabric, multiple compartments for ultimate organization.' },
-  '6': { _id: '6', name: 'Canvas Backpack', price: 999, category: 'Backpacks', stock: 18, isActive: true, imageUrl: '/p6.png', description: 'Vintage-inspired khaki canvas rucksack with leather trim accents. Great for outdoor adventures and casual daily use. Drawstring top closure with leather buckle straps for a classic look.' },
-  '7': { _id: '7', name: 'Office Messenger Bag', price: 2099, category: 'Messenger Bags', stock: 8, isActive: true, imageUrl: '/p7.png', description: 'Dark chocolate leather messenger bag with brass buckles and dedicated laptop sleeve. Professional, functional, and stylish. Ideal for the modern office professional.' },
-  '8': { _id: '8', name: 'Travel Duffel Bag', price: 2499, category: 'Duffel Bags', stock: 6, isActive: true, imageUrl: '/p8.png', description: 'Navy blue waxed canvas duffel with tan leather handles. Perfect weekend bag for the modern traveller. Large main compartment, end pocket for shoes, and detachable shoulder strap.' },
-  '9': { _id: '9', name: 'Mini Crossbody Bag', price: 1199, category: 'Crossbody Bags', stock: 22, isActive: true, imageUrl: '/p9.png', description: 'Chic blush pink mini crossbody with gold chain strap and turn-lock closure. Perfect for evenings out or light daily carry. Compact yet spacious enough for essentials.' },
-  '10': { _id: '10', name: 'Premium Handbag', price: 3499, category: 'Handbags', stock: 5, isActive: true, imageUrl: '/p10.png', description: 'Structured black leather handbag with gold hardware and top handle. A timeless statement piece for every wardrobe. Features suede interior, multiple pockets, and comes with a dust bag.' },
-};
-
 const serif: React.CSSProperties = {
   fontFamily: 'var(--font-playfair-loaded),"Playfair Display",Georgia,serif',
 };
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const product = DUMMY_MAP[id];
-  if (!product) notFound();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [missing, setMissing] = useState(false);
 
-  const waUrl = generateProductWhatsAppUrl(product.name, product.price);
-  const inStock = product.stock === undefined || product.stock > 0;
+  useEffect(() => {
+    fetch(`/api/products/${id}`)
+      .then(r => {
+        if (r.status === 404) { setMissing(true); return null; }
+        return r.json();
+      })
+      .then(data => {
+        if (data) setProduct(data.product ?? null);
+      })
+      .catch(() => setMissing(true))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main style={{ minHeight: '100vh', background: '#faf7f2', paddingTop: 96, paddingBottom: 80 }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+            <Loader2 style={{ width: 36, height: 36, color: '#c8a876', animation: 'spin 1s linear infinite' }} />
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  if (missing || !product) {
+    notFound();
+  }
+
+  const waUrl = generateProductWhatsAppUrl(product!.name, product!.price);
+  const inStock = product!.stock === undefined || product!.stock > 0;
 
   return (
     <>
@@ -56,7 +75,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               All Bags
             </Link>
             <span style={{ color: 'rgba(26,26,26,0.22)' }}>/</span>
-            <span style={{ color: '#1a1a1a', fontSize: 13.5, fontWeight: 600 }}>{product.name}</span>
+            <span style={{ color: '#1a1a1a', fontSize: 13.5, fontWeight: 600 }}>{product!.name}</span>
           </div>
 
           {/* Two-column layout */}
@@ -70,8 +89,8 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               flexShrink: 0,
             }}>
               <Image
-                src={product.imageUrl}
-                alt={product.name}
+                src={product!.imageUrl}
+                alt={product!.name}
                 fill
                 priority
                 loading="eager"
@@ -92,14 +111,14 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
             {/* Details */}
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              {product.category && (
+              {product!.category && (
                 <div style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   color: '#a0824e', fontSize: 11.5, fontWeight: 700,
                   letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 14,
                 }}>
                   <Tag style={{ width: 12, height: 12 }} />
-                  {product.category}
+                  {product!.category}
                 </div>
               )}
 
@@ -109,15 +128,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 fontWeight: 800, color: '#1a1a1a',
                 lineHeight: 1.15, marginBottom: 16, letterSpacing: '-0.02em',
               }}>
-                {product.name}
+                {product!.name}
               </h1>
 
               <div style={{ ...serif, fontSize: 38, fontWeight: 800, color: '#1a1a1a', marginBottom: 20 }}>
-                ₹{product.price.toLocaleString('en-IN')}
+                ₹{product!.price.toLocaleString('en-IN')}
               </div>
 
               <p style={{ fontSize: 15.5, color: 'rgba(26,26,26,0.62)', lineHeight: 1.78, marginBottom: 28 }}>
-                {product.description}
+                {product!.description}
               </p>
 
               {/* Stock */}
@@ -126,7 +145,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   <>
                     <CheckCircle style={{ width: 18, height: 18, color: '#16a34a' }} />
                     <span style={{ color: '#16a34a', fontWeight: 600, fontSize: 14 }}>
-                      {product.stock !== undefined ? `${product.stock} units in stock` : 'In Stock'}
+                      {product!.stock !== undefined ? `${product!.stock} units in stock` : 'In Stock'}
                     </span>
                   </>
                 ) : (
@@ -173,7 +192,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   Product Details
                 </h3>
                 {[
-                  ...(product.category ? [['Category', product.category, false]] : []),
+                  ...(product!.category ? [['Category', product!.category, false]] : []),
                   ['Availability', inStock ? 'Available' : 'Out of Stock', true],
                   ['Purchase via', 'WhatsApp', false],
                 ].map(([k, v, isStock]) => (
