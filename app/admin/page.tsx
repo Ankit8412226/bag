@@ -66,6 +66,10 @@ export default function AdminPage() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -209,187 +213,233 @@ export default function AdminPage() {
     }
   }
 
+  const categories = ['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean))) as string[]];
+
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          p.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCat = selectedCategory === 'All' || p.category === selectedCategory;
+    return matchesSearch && matchesCat;
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-cream flex items-center justify-center">
-        <div className="text-charcoal/40">Loading...</div>
+        <div className="flex items-center gap-3 text-charcoal/60 font-medium">
+          <Loader2 className="w-5 h-5 animate-spin text-tan" />
+          <span>Loading Admin Dashboard...</span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-cream text-charcoal antialiased">
       {/* Header */}
-      <header className="bg-charcoal text-white px-4 sm:px-8 py-4">
+      <header className="bg-charcoal text-white px-4 sm:px-8 py-4 sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-tan rounded-lg flex items-center justify-center">
-              <ShoppingBag className="w-4 h-4 text-white" />
+            <div className="w-9 h-9 bg-tan rounded-xl flex items-center justify-center shadow-xs">
+              <ShoppingBag className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="font-bold text-white leading-none" style={{ fontFamily: 'var(--font-playfair), serif' }}>
+              <h1 className="font-bold text-white text-lg leading-tight tracking-tight" style={{ fontFamily: 'var(--font-playfair-loaded), serif' }}>
                 BagCorner
               </h1>
-              <p className="text-white/40 text-xs">Admin Panel</p>
+              <p className="text-white/50 text-xs font-medium">Admin Dashboard</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <a
               href="/"
-              className="text-white/60 hover:text-white text-sm transition-colors hidden sm:block"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white/70 hover:text-white text-sm font-medium transition-colors hidden sm:flex items-center gap-1.5 bg-white/10 px-3.5 py-1.5 rounded-lg border border-white/10"
             >
-              View Store
+              <span>View Store</span>
             </a>
             <button
               id="admin-logout-btn"
               onClick={handleLogout}
-              className="flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors"
+              className="flex items-center gap-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 hover:text-white px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all border border-rose-500/30"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:block">Logout</span>
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8">
-        {/* Stats */}
+        {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Total Products', value: products.length, color: 'bg-charcoal' },
-            { label: 'Active', value: products.filter((p) => p.isActive).length, color: 'bg-green-600' },
-            { label: 'Inactive', value: products.filter((p) => !p.isActive).length, color: 'bg-red-400' },
-            { label: 'Out of Stock', value: products.filter((p) => p.stock === 0).length, color: 'bg-amber-500' },
+            { label: 'Total Products', value: products.length, badge: 'All items', accent: 'bg-charcoal text-white' },
+            { label: 'Active', value: products.filter((p) => p.isActive).length, badge: 'Live in store', accent: 'bg-emerald-600 text-white' },
+            { label: 'Inactive', value: products.filter((p) => !p.isActive).length, badge: 'Hidden', accent: 'bg-rose-500 text-white' },
+            { label: 'Out of Stock', value: products.filter((p) => p.stock === 0).length, badge: 'Stock Alert', accent: 'bg-amber-500 text-white' },
           ].map((stat) => (
-            <div key={stat.label} className="bg-white rounded-2xl p-5 border border-border">
-              <div className={`w-8 h-1 rounded-full ${stat.color} mb-3`} />
-              <div className="text-2xl font-bold text-charcoal">{stat.value}</div>
-              <div className="text-charcoal/50 text-xs mt-0.5">{stat.label}</div>
+            <div key={stat.label} className="bg-white rounded-2xl p-5 border border-border shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <span className="text-xs font-semibold text-charcoal/60 tracking-wide">{stat.label}</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${stat.accent}`}>
+                  {stat.badge}
+                </span>
+              </div>
+              <div className="text-3xl font-black text-charcoal tracking-tight leading-none mb-1">
+                {stat.value}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Toolbar */}
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-bold text-charcoal">Products</h2>
-          <button
-            id="admin-add-product-btn"
-            onClick={openCreate}
-            className="flex items-center gap-2 bg-charcoal text-white px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-dark transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add Product
-          </button>
+        {/* Toolbar & Search */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <h2 className="text-2xl font-extrabold text-charcoal tracking-tight">Products</h2>
+            <span className="bg-tan/15 text-tan font-bold px-2.5 py-1 rounded-full text-xs border border-tan/30">
+              {filteredProducts.length} items
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+            {/* Search Input */}
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="px-3.5 py-2.5 bg-white border border-border rounded-xl text-sm text-charcoal placeholder-charcoal/40 focus:outline-none focus:ring-2 focus:ring-tan/40 w-full sm:w-60 shadow-xs"
+            />
+
+            {/* Add Product Button */}
+            <button
+              id="admin-add-product-btn"
+              onClick={openCreate}
+              className="flex items-center justify-center gap-2 bg-charcoal text-white px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-dark transition-all shadow-xs whitespace-nowrap shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Product</span>
+            </button>
+          </div>
         </div>
 
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
-            {error}
+          <div className="mb-6 bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl text-sm font-medium flex items-center justify-between">
+            <span>{error}</span>
+            <button onClick={() => setError('')} className="text-rose-400 hover:text-rose-700">
+              <X className="w-4 h-4" />
+            </button>
           </div>
         )}
 
         {/* Products Table */}
-        {products.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-border p-16 text-center">
+        {filteredProducts.length === 0 ? (
+          <div className="bg-white rounded-2xl border border-border p-16 text-center shadow-xs">
             <Package className="w-12 h-12 text-charcoal/20 mx-auto mb-3" />
-            <p className="text-charcoal/40">No products yet. Add your first bag!</p>
+            <h3 className="text-lg font-bold text-charcoal mb-1">No products found</h3>
+            <p className="text-charcoal/50 text-sm max-w-sm mx-auto">
+              {searchQuery ? 'Try clearing your search query to see all items.' : 'Click "Add Product" above to create your first item!'}
+            </p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-border overflow-hidden">
+          <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm text-left">
                 <thead>
-                  <tr className="border-b border-border bg-cream/50">
-                    <th className="text-left px-4 py-3 text-charcoal/50 font-medium">Product</th>
-                    <th className="text-left px-4 py-3 text-charcoal/50 font-medium hidden md:table-cell">Category</th>
-                    <th className="text-left px-4 py-3 text-charcoal/50 font-medium">Price</th>
-                    <th className="text-left px-4 py-3 text-charcoal/50 font-medium hidden sm:table-cell">Stock</th>
-                    <th className="text-left px-4 py-3 text-charcoal/50 font-medium">Status</th>
-                    <th className="text-right px-4 py-3 text-charcoal/50 font-medium">Actions</th>
+                  <tr className="border-b border-border bg-cream/60">
+                    <th className="px-5 py-3.5 text-xs font-bold text-charcoal/60 uppercase tracking-wider min-w-[260px]">Product</th>
+                    <th className="px-5 py-3.5 text-xs font-bold text-charcoal/60 uppercase tracking-wider min-w-[120px] hidden md:table-cell">Category</th>
+                    <th className="px-5 py-3.5 text-xs font-bold text-charcoal/60 uppercase tracking-wider min-w-[100px] whitespace-nowrap">Price</th>
+                    <th className="px-5 py-3.5 text-xs font-bold text-charcoal/60 uppercase tracking-wider min-w-[100px] whitespace-nowrap hidden sm:table-cell">Stock Status</th>
+                    <th className="px-5 py-3.5 text-xs font-bold text-charcoal/60 uppercase tracking-wider min-w-[100px] whitespace-nowrap">Status</th>
+                    <th className="px-5 py-3.5 text-xs font-bold text-charcoal/60 uppercase tracking-wider min-w-[100px] whitespace-nowrap text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
-                  {products.map((product) => (
-                    <tr key={product._id} className="hover:bg-cream/30 transition-colors">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-cream flex-shrink-0 border border-border">
-                            {product.imageUrl ? (
+                <tbody className="divide-y divide-border/60">
+                  {filteredProducts.map((product) => {
+                    const isImgFailed = failedImages[product._id];
+                    const imgUrl = isImgFailed ? '/p1.png' : product.imageUrl || '/p1.png';
+
+                    return (
+                      <tr key={product._id} className="hover:bg-cream/40 transition-colors">
+                        <td className="px-5 py-4 min-w-[260px]">
+                          <div className="flex items-center gap-3.5">
+                            <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-cream flex-shrink-0 border border-border shadow-2xs">
                               <Image
-                                src={product.imageUrl}
+                                src={imgUrl}
                                 alt={product.name}
                                 fill
                                 className="object-cover"
                                 sizes="48px"
+                                onError={() => setFailedImages(prev => ({ ...prev, [product._id]: true }))}
                               />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-bold text-charcoal line-clamp-1 text-sm">{product.name}</div>
+                              <div className="text-charcoal/50 text-xs line-clamp-1 hidden sm:block mt-0.5">{product.description}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 hidden md:table-cell min-w-[120px]">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-cream text-charcoal/70 border border-border/70">
+                            {product.category || 'Uncategorized'}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 font-bold text-charcoal text-base whitespace-nowrap min-w-[100px]">
+                          ₹{product.price.toLocaleString('en-IN')}
+                        </td>
+                        <td className="px-5 py-4 hidden sm:table-cell whitespace-nowrap min-w-[100px]">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            product.stock === 0
+                              ? 'bg-rose-100 text-rose-700'
+                              : product.stock !== undefined
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-cream text-charcoal/50'
+                          }`}>
+                            {product.stock === 0 ? 'Out of stock' : product.stock !== undefined ? `${product.stock} in stock` : 'Unlimited'}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap min-w-[100px]">
+                          <button
+                            onClick={() => toggleActive(product)}
+                            className="flex items-center gap-2 text-xs font-bold transition-all focus:outline-none"
+                            title={product.isActive ? 'Click to deactivate' : 'Click to activate'}
+                          >
+                            {product.isActive ? (
+                              <>
+                                <ToggleRight className="w-6 h-6 text-emerald-600" />
+                                <span className="text-emerald-700 hidden sm:inline">Active</span>
+                              </>
                             ) : (
-                              <div className="flex items-center justify-center h-full">
-                                <ImageOff className="w-5 h-5 text-charcoal/20" />
-                              </div>
+                              <>
+                                <ToggleLeft className="w-6 h-6 text-charcoal/30" />
+                                <span className="text-charcoal/40 hidden sm:inline">Inactive</span>
+                              </>
                             )}
-                          </div>
-                          <div>
-                            <div className="font-medium text-charcoal line-clamp-1">{product.name}</div>
-                            <div className="text-charcoal/40 text-xs line-clamp-1 hidden sm:block">{product.description}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <span className="text-charcoal/60">{product.category || '—'}</span>
-                      </td>
-                      <td className="px-4 py-3 font-semibold text-charcoal">
-                        ₹{product.price.toLocaleString('en-IN')}
-                      </td>
-                      <td className="px-4 py-3 hidden sm:table-cell">
-                        <span className={`text-xs font-medium ${
-                          product.stock === 0
-                            ? 'text-red-500'
-                            : product.stock !== undefined
-                            ? 'text-green-600'
-                            : 'text-charcoal/40'
-                        }`}>
-                          {product.stock === 0 ? 'Out' : product.stock !== undefined ? product.stock : '—'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => toggleActive(product)}
-                          className="flex items-center gap-1.5 text-xs font-medium transition-colors"
-                          title={product.isActive ? 'Click to deactivate' : 'Click to activate'}
-                        >
-                          {product.isActive ? (
-                            <>
-                              <ToggleRight className="w-5 h-5 text-green-500" />
-                              <span className="text-green-600 hidden sm:inline">Active</span>
-                            </>
-                          ) : (
-                            <>
-                              <ToggleLeft className="w-5 h-5 text-charcoal/30" />
-                              <span className="text-charcoal/40 hidden sm:inline">Inactive</span>
-                            </>
-                          )}
-                        </button>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => openEdit(product)}
-                            className="p-2 rounded-lg hover:bg-cream text-charcoal/50 hover:text-charcoal transition-colors"
-                            title="Edit"
-                          >
-                            <Edit2 className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => setDeleteId(product._id)}
-                            className="p-2 rounded-lg hover:bg-red-50 text-charcoal/50 hover:text-red-500 transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-5 py-4 whitespace-nowrap text-right min-w-[100px]">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              onClick={() => openEdit(product)}
+                              className="p-2 rounded-lg hover:bg-cream text-charcoal/60 hover:text-charcoal transition-colors"
+                              title="Edit product"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteId(product._id)}
+                              className="p-2 rounded-lg hover:bg-rose-50 text-charcoal/60 hover:text-rose-600 transition-colors"
+                              title="Delete product"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
 import { isAdminAuthenticated } from '@/lib/auth';
-import { DUMMY_PRODUCTS } from '@/lib/productsData';
+import { DUMMY_PRODUCTS, normalizeImageUrl } from '@/lib/productsData';
 
 export async function GET(
   _request: Request,
@@ -17,20 +17,20 @@ export async function GET(
       if (!dummy) {
         return NextResponse.json({ error: 'Product not found' }, { status: 404 });
       }
-      return NextResponse.json({ product: dummy });
+      return NextResponse.json({ product: { ...dummy, imageUrl: normalizeImageUrl(dummy.imageUrl) } });
     }
 
     const product = await Product.findById(id).lean();
     if (!product) {
       const dummy = DUMMY_PRODUCTS.find(p => p._id === id);
-      if (dummy) return NextResponse.json({ product: dummy });
+      if (dummy) return NextResponse.json({ product: { ...dummy, imageUrl: normalizeImageUrl(dummy.imageUrl) } });
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
-    return NextResponse.json({ product });
+    return NextResponse.json({ product: { ...product, imageUrl: normalizeImageUrl(product.imageUrl) } });
   } catch {
     const { id } = await params;
     const dummy = DUMMY_PRODUCTS.find(p => p._id === id);
-    if (dummy) return NextResponse.json({ product: dummy });
+    if (dummy) return NextResponse.json({ product: { ...dummy, imageUrl: normalizeImageUrl(dummy.imageUrl) } });
     return NextResponse.json({ error: 'Failed to fetch product' }, { status: 500 });
   }
 }

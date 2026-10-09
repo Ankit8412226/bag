@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
 import { isAdminAuthenticated } from '@/lib/auth';
-import { DUMMY_PRODUCTS } from '@/lib/productsData';
+import { DUMMY_PRODUCTS, normalizeImageUrl } from '@/lib/productsData';
 
 export async function GET(request: Request) {
   try {
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
 
     const db = await connectDB();
     if (!db) {
-      let filtered = [...DUMMY_PRODUCTS];
+      let filtered = DUMMY_PRODUCTS.map(p => ({ ...p, imageUrl: normalizeImageUrl(p.imageUrl) }));
       if (category) {
         filtered = filtered.filter(p => p.category.toLowerCase() === category.toLowerCase());
       }
@@ -30,11 +30,18 @@ export async function GET(request: Request) {
     let query = Product.find(filter).sort({ createdAt: -1 });
     if (limit > 0) query = query.limit(limit);
 
-    const products = await query.lean();
-    return NextResponse.json({ products: products.length > 0 ? products : DUMMY_PRODUCTS });
+    const rawProducts = await query.lean();
+    const list = rawProducts.length > 0 ? rawProducts : DUMMY_PRODUCTS;
+    const products = list.map((p) => ({
+      ...p,
+      imageUrl: normalizeImageUrl(p.imageUrl),
+    }));
+
+    return NextResponse.json({ products });
   } catch (error) {
     console.warn('GET /api/products using fallback data:', error);
-    return NextResponse.json({ products: DUMMY_PRODUCTS });
+    const products = DUMMY_PRODUCTS.map(p => ({ ...p, imageUrl: normalizeImageUrl(p.imageUrl) }));
+    return NextResponse.json({ products });
   }
 }
 

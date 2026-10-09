@@ -13,13 +13,31 @@ export interface ProductType {
   dimensions?: string;
 }
 
+export function normalizeImageUrl(url?: string): string {
+  if (!url) return '/p1.png';
+  const legacyMap: Record<string, string> = {
+    '/leather-backpack.png': '/p1.png',
+    '/duffel-bag.png': '/p2.png',
+    '/messenger-bag.png': '/p3.png',
+    '/handbag-premium.png': '/p4.png',
+    '/sling-bag.png': '/p5.png',
+    '/tote-bag.png': '/p6.png',
+    '/canvas-backpack.png': '/p7.png',
+    '/laptop-backpack.png': '/p8.png',
+    '/crossbody-bag.png': '/p9.png',
+    '/travel-backpack.png': '/p10.png',
+    '/hero-bags.png': '/hero.png',
+  };
+  return legacyMap[url] || url;
+}
+
 export const DUMMY_PRODUCTS: ProductType[] = [
   {
     _id: '1',
     name: 'Classic Leather Executive Backpack',
     price: 3499,
     description: 'Crafted from premium top-grain genuine leather with a dedicated 16-inch padded laptop compartment, ergonomic padded shoulder straps, and quick-access magnetic flap pockets.',
-    imageUrl: '/leather-backpack.png',
+    imageUrl: '/p1.png',
     category: 'Backpacks',
     stock: 15,
     isActive: true,
@@ -33,7 +51,7 @@ export const DUMMY_PRODUCTS: ProductType[] = [
     name: 'Vintage Canvas Adventurer Duffel',
     price: 2899,
     description: 'Heavy-duty water-repellent canvas weekend duffel featuring reinforced leather trim, spacious main compartment, separate shoe tunnel, and detachable padded shoulder strap.',
-    imageUrl: '/duffel-bag.png',
+    imageUrl: '/p2.png',
     category: 'Travel',
     stock: 8,
     isActive: true,
@@ -47,7 +65,7 @@ export const DUMMY_PRODUCTS: ProductType[] = [
     name: 'Minimalist Urban Messenger Bag',
     price: 2299,
     description: 'Sleek weatherproof cross-body messenger designed for modern commuters. Fits up to a 14-inch laptop with quick-release magnetic buckles and internal organizer slots.',
-    imageUrl: '/messenger-bag.png',
+    imageUrl: '/p3.png',
     category: 'Crossbody',
     stock: 20,
     isActive: true,
@@ -61,7 +79,7 @@ export const DUMMY_PRODUCTS: ProductType[] = [
     name: 'Elegance Premium Leather Handbag',
     price: 3999,
     description: 'Sophisticated structured tote handbag crafted with smooth genuine leather, golden metallic accents, dual top handles, and detachable leather cross-body strap.',
-    imageUrl: '/handbag-premium.png',
+    imageUrl: '/p4.png',
     category: 'Handbags',
     stock: 12,
     isActive: true,
@@ -75,7 +93,7 @@ export const DUMMY_PRODUCTS: ProductType[] = [
     name: 'Compact Travel Sling Bag',
     price: 1499,
     description: 'Ultra-lightweight anti-theft body sling with USB charging port, hidden back RFID zipper pocket, and ambidextrous strap attachment for easy chest or back wear.',
-    imageUrl: '/sling-bag.png',
+    imageUrl: '/p5.png',
     category: 'Crossbody',
     stock: 25,
     isActive: true,
@@ -88,7 +106,7 @@ export const DUMMY_PRODUCTS: ProductType[] = [
     name: 'Everyday Canvas Tote Bag',
     price: 1199,
     description: 'Eco-friendly organic cotton canvas tote with interior zippered phone pocket, key leash, and sturdy double-stitched handles built for daily shopping or college life.',
-    imageUrl: '/tote-bag.png',
+    imageUrl: '/p6.png',
     category: 'Handbags',
     stock: 30,
     isActive: true,
@@ -101,7 +119,7 @@ export const DUMMY_PRODUCTS: ProductType[] = [
     name: 'Rugged Canvas Heritage Backpack',
     price: 2699,
     description: 'Vintage-inspired roll-top backpack with bronze buckle closures, twin side water bottle pockets, and breathable mesh back paneling.',
-    imageUrl: '/canvas-backpack.png',
+    imageUrl: '/p7.png',
     category: 'Backpacks',
     stock: 10,
     isActive: true,
@@ -114,7 +132,7 @@ export const DUMMY_PRODUCTS: ProductType[] = [
     name: 'Pro Tech Commuter Laptop Backpack',
     price: 3199,
     description: 'Engineered for tech enthusiasts with TSA-friendly 180° opening, dual laptop & tablet sleeves, luggage trolley strap, and hidden anti-theft pocket.',
-    imageUrl: '/laptop-backpack.png',
+    imageUrl: '/p8.png',
     category: 'Backpacks',
     stock: 18,
     isActive: true,
@@ -128,7 +146,7 @@ export const DUMMY_PRODUCTS: ProductType[] = [
     name: 'Leather Crossbody Shoulder Pouch',
     price: 1799,
     description: 'Compact genuine leather pouch ideal for phone, wallet, passport, and daily essentials. Slim profile with adjustable soft leather strap.',
-    imageUrl: '/crossbody-bag.png',
+    imageUrl: '/p9.png',
     category: 'Crossbody',
     stock: 22,
     isActive: true,
@@ -141,7 +159,7 @@ export const DUMMY_PRODUCTS: ProductType[] = [
     name: 'Weekender Expandable Duffel Bag',
     price: 3299,
     description: 'High-capacity expandable travel bag with separate wet/dry compartment, suitcase sleeve attachment, and padded shoulder cushion.',
-    imageUrl: '/travel-backpack.png',
+    imageUrl: '/p10.png',
     category: 'Travel',
     stock: 14,
     isActive: true,

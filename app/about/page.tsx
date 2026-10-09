@@ -48,7 +48,7 @@ export default function AboutPage() {
             boxShadow: '0 20px 40px rgba(0,0,0,0.08)',
           }}>
             <Image
-              src="/hero-bags.png"
+              src="/hero.png"
               alt="BagCorner Heritage & Craftsmanship"
               fill
               style={{ objectFit: 'cover' }}
@@ -190,16 +190,16 @@ export default function AboutPage() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <div style={{ position: 'relative', height: 260, borderRadius: 20, overflow: 'hidden' }}>
-                  <Image src="/leather-backpack.png" alt="Leather Detail" fill style={{ objectFit: 'cover' }} />
+                  <Image src="/p1.png" alt="Leather Detail" fill style={{ objectFit: 'cover' }} />
                 </div>
                 <div style={{ position: 'relative', height: 260, borderRadius: 20, overflow: 'hidden', marginTop: 24 }}>
-                  <Image src="/duffel-bag.png" alt="Duffel Detail" fill style={{ objectFit: 'cover' }} />
+                  <Image src="/p2.png" alt="Duffel Detail" fill style={{ objectFit: 'cover' }} />
                 </div>
                 <div style={{ position: 'relative', height: 260, borderRadius: 20, overflow: 'hidden', marginTop: -24 }}>
-                  <Image src="/handbag-premium.png" alt="Handbag Detail" fill style={{ objectFit: 'cover' }} />
+                  <Image src="/p4.png" alt="Handbag Detail" fill style={{ objectFit: 'cover' }} />
                 </div>
                 <div style={{ position: 'relative', height: 260, borderRadius: 20, overflow: 'hidden' }}>
-                  <Image src="/laptop-backpack.png" alt="Backpack Detail" fill style={{ objectFit: 'cover' }} />
+                  <Image src="/p8.png" alt="Backpack Detail" fill style={{ objectFit: 'cover' }} />
                 </div>
               </div>
             </div>
